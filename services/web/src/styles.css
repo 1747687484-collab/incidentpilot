@@ -155,6 +155,72 @@ h2 {
   padding: 16px;
 }
 
+.section-heading {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.section-heading h2 {
+  margin-bottom: 0;
+}
+
+.ghost-button {
+  background: #eef4f1;
+  color: #164c45;
+  min-height: 34px;
+  padding: 0 12px;
+}
+
+.incident-list {
+  max-height: 460px;
+  overflow: auto;
+}
+
+.incident-row {
+  background: #ffffff;
+  border: 1px solid #dce5e0;
+  color: #16201d;
+  display: grid;
+  gap: 8px;
+  min-height: 118px;
+  padding: 12px;
+  text-align: left;
+}
+
+.incident-row:hover,
+.incident-row-active {
+  border-color: #0b7a75;
+  box-shadow: inset 3px 0 0 #0b7a75;
+}
+
+.incident-row-top,
+.incident-row-meta {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.incident-row-top span,
+.incident-row-meta {
+  color: #60716a;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.incident-row-symptom {
+  color: #42524d;
+  display: -webkit-box;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
 label {
   color: #42524d;
   display: grid;

@@ -20,3 +20,44 @@ func TestEmbeddingLiteral(t *testing.T) {
 	}
 }
 
+func TestParseIncidentListLimit(t *testing.T) {
+	tests := []struct {
+		name    string
+		raw     string
+		want    int
+		wantErr bool
+	}{
+		{name: "default", raw: "", want: 20},
+		{name: "custom", raw: "5", want: 5},
+		{name: "too low", raw: "0", wantErr: true},
+		{name: "too high", raw: "101", wantErr: true},
+		{name: "not number", raw: "many", wantErr: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := parseIncidentListLimit(tt.raw)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatalf("expected error")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if got != tt.want {
+				t.Fatalf("expected %d, got %d", tt.want, got)
+			}
+		})
+	}
+}
+
+func TestValidIncidentStatus(t *testing.T) {
+	if !validIncidentStatus("awaiting_approval") {
+		t.Fatalf("expected awaiting_approval to be valid")
+	}
+	if validIncidentStatus("deleted") {
+		t.Fatalf("expected deleted to be invalid")
+	}
+}

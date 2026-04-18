@@ -65,6 +65,11 @@ type IncidentDetail struct {
 	Report   *RootCauseReport    `json:"report,omitempty"`
 }
 
+type IncidentListResponse struct {
+	Items []Incident `json:"items"`
+	Limit int        `json:"limit"`
+}
+
 type CreateIncidentRequest struct {
 	Service  string `json:"service"`
 	Symptom  string `json:"symptom"`
@@ -88,4 +93,3 @@ type ApproveActionRequest struct {
 	ActionID string `json:"action_id"`
 	Operator string `json:"operator"`
 }
-

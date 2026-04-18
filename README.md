@@ -82,6 +82,7 @@ docs                      需求、架构、演示、评测、路线图、简历
 ## 对外 API
 
 - `POST /api/incidents`：创建事故诊断任务。
+- `GET /api/incidents`：查询最近事故列表，支持 `limit`、`service`、`status`。
 - `GET /api/incidents/{id}`：查询事故、证据、Agent 步骤、动作和报告。
 - `GET /api/incidents/{id}/events`：订阅 SSE 实时事件。
 - `POST /api/incidents/{id}/approve-action`：审批待执行的修复动作。
@@ -161,6 +162,7 @@ python tests/agent_eval/run_eval.py
 - Docker Compose 全栈启动。
 - API 健康检查。
 - Web 看板访问。
+- 最近事故列表和历史事故切换。
 - Prometheus 健康检查。
 - 端到端链路：注入故障 -> 创建事故 -> Agent RCA -> 审批动作 -> resolved。
 - Go 单元测试。
@@ -178,4 +180,3 @@ python tests/agent_eval/run_eval.py
 ## 说明
 
 默认 Agent 工作流是确定性的，因此不需要任何付费 LLM Key 就能运行完整演示。后续可以在 `rca_agent` 阶段接入 OpenAI、DeepSeek、腾讯混元或本地 Ollama，只要保持当前 API 和数据库契约不变即可。
-

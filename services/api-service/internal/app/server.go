@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -190,6 +191,10 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleIncidents(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		s.handleIncidentList(w, r)
+		return
+	}
 	if r.Method != http.MethodPost {
 		writeError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return
@@ -254,6 +259,53 @@ func (s *Server) handleIncidents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusCreated, detail)
+}
+
+func (s *Server) handleIncidentList(w http.ResponseWriter, r *http.Request) {
+	limit, err := parseIncidentListLimit(r.URL.Query().Get("limit"))
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	service := strings.TrimSpace(r.URL.Query().Get("service"))
+	if service != "" && !validService(service) {
+		writeError(w, http.StatusBadRequest, "service must be order, payment, or inventory")
+		return
+	}
+	status := strings.TrimSpace(r.URL.Query().Get("status"))
+	if status != "" && !validIncidentStatus(status) {
+		writeError(w, http.StatusBadRequest, "invalid status")
+		return
+	}
+
+	rows, err := s.db.Query(r.Context(), `
+		SELECT id::text, service, symptom, severity, status, created_at, updated_at
+		FROM incidents
+		WHERE ($1 = '' OR service = $1)
+		  AND ($2 = '' OR status = $2)
+		ORDER BY created_at DESC
+		LIMIT $3
+	`, service, status, limit)
+	if err != nil {
+		slog.Error("list incidents failed", "error", err)
+		writeError(w, http.StatusInternalServerError, "failed to list incidents")
+		return
+	}
+	defer rows.Close()
+
+	items := make([]Incident, 0, limit)
+	for rows.Next() {
+		var item Incident
+		if err := rows.Scan(
+			&item.ID, &item.Service, &item.Symptom, &item.Severity,
+			&item.Status, &item.CreatedAt, &item.UpdatedAt,
+		); err != nil {
+			writeError(w, http.StatusInternalServerError, "failed to read incidents")
+			return
+		}
+		items = append(items, item)
+	}
+	writeJSON(w, http.StatusOK, IncidentListResponse{Items: items, Limit: limit})
 }
 
 func (s *Server) handleIncidentByID(w http.ResponseWriter, r *http.Request) {
@@ -669,6 +721,29 @@ func validService(service string) bool {
 	default:
 		return false
 	}
+}
+
+func validIncidentStatus(status string) bool {
+	switch status {
+	case "queued", "running", "awaiting_approval", "resolved", "failed":
+		return true
+	default:
+		return false
+	}
+}
+
+func parseIncidentListLimit(raw string) (int, error) {
+	if strings.TrimSpace(raw) == "" {
+		return 20, nil
+	}
+	limit, err := strconv.Atoi(raw)
+	if err != nil {
+		return 0, fmt.Errorf("limit must be a number")
+	}
+	if limit < 1 || limit > 100 {
+		return 0, fmt.Errorf("limit must be 1..100")
+	}
+	return limit, nil
 }
 
 var wordRE = regexp.MustCompile(`\s+`)

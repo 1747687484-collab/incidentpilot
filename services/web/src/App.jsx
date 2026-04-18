@@ -23,6 +23,7 @@ const faultPresets = {
 
 export default function App() {
   const [incident, setIncident] = useState(null);
+  const [incidents, setIncidents] = useState([]);
   const [events, setEvents] = useState([]);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -48,6 +49,10 @@ export default function App() {
   const pendingActions = actions.filter((action) => action.status === "pending_approval");
 
   useEffect(() => {
+    loadIncidentList();
+  }, []);
+
+  useEffect(() => {
     if (!incident?.incident?.id) return undefined;
     const id = incident.incident.id;
     const source = new EventSource(`${API_BASE}/api/incidents/${id}/events`);
@@ -56,6 +61,7 @@ export default function App() {
       const payload = safeJSON(event.data);
       setEvents((current) => [{ type: event.type, payload, id: event.lastEventId }, ...current].slice(0, 40));
       refreshIncident(id);
+      loadIncidentList();
     };
 
     eventNames.forEach((name) => source.addEventListener(name, handleEvent));
@@ -65,13 +71,21 @@ export default function App() {
   }, [incident?.incident?.id]);
 
   const healthText = useMemo(() => {
-    if (status === "resolved") return "Resolved";
-    if (status === "awaiting_approval") return "Approval needed";
-    if (status === "running") return "Agents running";
-    if (status === "failed") return "Needs review";
-    if (status === "queued") return "Queued";
-    return "Ready";
+    if (status === "resolved") return "已解决";
+    if (status === "awaiting_approval") return "待审批";
+    if (status === "running") return "Agent 运行中";
+    if (status === "failed") return "需人工处理";
+    if (status === "queued") return "排队中";
+    return "就绪";
   }, [status]);
+
+  async function loadIncidentList() {
+    const response = await fetch(`${API_BASE}/api/incidents?limit=12`);
+    if (response.ok) {
+      const body = await response.json();
+      setIncidents(body.items || []);
+    }
+  }
 
   async function refreshIncident(id = incident?.incident?.id) {
     if (!id) return;
@@ -93,7 +107,7 @@ export default function App() {
       });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || "Failed to inject fault");
-      setMessage(`Injected ${body.fault_type} on ${body.service}`);
+      setMessage(`已注入 ${body.service}/${body.fault_type}`);
     } catch (error) {
       setMessage(error.message);
     } finally {
@@ -118,7 +132,8 @@ export default function App() {
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || "Failed to create incident");
       setIncident(body);
-      setMessage("Incident accepted");
+      setMessage("事故已提交");
+      loadIncidentList();
     } catch (error) {
       setMessage(error.message);
     } finally {
@@ -138,7 +153,7 @@ export default function App() {
       });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || "Failed to upload runbook");
-      setMessage(`Indexed ${body.chunks} chunk(s)`);
+      setMessage(`已索引 ${body.chunks} 个文档块`);
     } catch (error) {
       setMessage(error.message);
     } finally {
@@ -158,8 +173,9 @@ export default function App() {
       });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || "Failed to approve action");
-      setMessage("Approval sent");
+      setMessage("审批已发送");
       refreshIncident();
+      loadIncidentList();
     } catch (error) {
       setMessage(error.message);
     } finally {
@@ -170,6 +186,23 @@ export default function App() {
   function updateIncidentService(service) {
     setIncidentForm((current) => ({ ...current, service }));
     setFaultForm((current) => ({ ...current, service, fault_type: faultPresets[service][0] }));
+  }
+
+  async function selectIncident(id) {
+    setBusy(true);
+    setEvents([]);
+    setMessage("");
+    try {
+      const response = await fetch(`${API_BASE}/api/incidents/${id}`);
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "Failed to load incident");
+      setIncident(body);
+      setMessage(`已加载事故 ${id.slice(0, 8)}`);
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -190,6 +223,38 @@ export default function App() {
             src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=900&q=80"
             alt="Circuit board detail"
           />
+
+          <section className="incident-list form-block">
+            <div className="section-heading">
+              <h2>最近事故</h2>
+              <button className="ghost-button" type="button" onClick={loadIncidentList} disabled={busy}>
+                刷新
+              </button>
+            </div>
+            {incidents.length === 0 ? (
+              <p className="empty">暂无事故，先注入故障并创建一条事故。</p>
+            ) : (
+              incidents.map((item) => (
+                <button
+                  className={`incident-row ${item.id === incident?.incident?.id ? "incident-row-active" : ""}`}
+                  disabled={busy}
+                  key={item.id}
+                  onClick={() => selectIncident(item.id)}
+                  type="button"
+                >
+                  <span className="incident-row-top">
+                    <strong>{item.service}</strong>
+                    <span>{statusLabel(item.status)}</span>
+                  </span>
+                  <span className="incident-row-symptom">{item.symptom}</span>
+                  <span className="incident-row-meta">
+                    {item.severity} · {formatTime(item.created_at)}
+                  </span>
+                </button>
+              ))
+            )}
+          </section>
+
           <form onSubmit={createFault} className="form-block">
             <h2>故障注入</h2>
             <label>
@@ -376,3 +441,23 @@ function safeJSON(value) {
   }
 }
 
+function statusLabel(status) {
+  const labels = {
+    queued: "排队中",
+    running: "运行中",
+    awaiting_approval: "待审批",
+    resolved: "已解决",
+    failed: "失败",
+  };
+  return labels[status] || status;
+}
+
+function formatTime(value) {
+  if (!value) return "";
+  return new Intl.DateTimeFormat("zh-CN", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+}

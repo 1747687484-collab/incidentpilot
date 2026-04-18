@@ -26,6 +26,7 @@ flowchart TD
 职责：
 
 - 校验并持久化事故。
+- 查询最近事故列表。
 - 发布事故和审批消息。
 - 暴露 REST API 和 SSE 事件流。
 - 实现事故创建和动作审批的幂等。
@@ -64,6 +65,7 @@ flowchart TD
 - 提供事故处理看板。
 - 注入模拟故障。
 - 创建事故。
+- 展示最近事故并切换历史事故。
 - 展示 Agent 时间线、证据链、根因报告和审批动作。
 - 监听 SSE 事件并实时刷新状态。
 
@@ -128,4 +130,3 @@ sequenceDiagram
 - 增加 OpenTelemetry trace。
 - 增加鉴权和基于角色的审批。
 - 增加 Kubernetes manifests 和 Helm chart。
-
