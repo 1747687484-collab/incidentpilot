@@ -1,0 +1,143 @@
+[
+  {
+    "id": "case-001",
+    "service": "order",
+    "symptom": "Checkout latency spikes after a Redis hot key expired.",
+    "faults": [{"fault_type": "cache_stampede", "intensity": 85}],
+    "expected_keyword": "cache stampede"
+  },
+  {
+    "id": "case-002",
+    "service": "order",
+    "symptom": "Order summary requests show cache miss storm and high database reads.",
+    "faults": [{"fault_type": "cache_stampede", "intensity": 73}],
+    "expected_keyword": "cache stampede"
+  },
+  {
+    "id": "case-003",
+    "service": "payment",
+    "symptom": "Payment authorization waits until gateway timeout.",
+    "faults": [{"fault_type": "payment_timeout", "intensity": 91}],
+    "expected_keyword": "payment timeout"
+  },
+  {
+    "id": "case-004",
+    "service": "order",
+    "symptom": "Checkout fails because payment retry attempts are exhausted.",
+    "faults": [{"fault_type": "payment_timeout", "intensity": 78}],
+    "expected_keyword": "payment timeout"
+  },
+  {
+    "id": "case-005",
+    "service": "inventory",
+    "symptom": "Stock reservation requests are stuck behind lock waits.",
+    "faults": [{"fault_type": "db_slow_query", "intensity": 86}],
+    "expected_keyword": "database slow queries"
+  },
+  {
+    "id": "case-006",
+    "service": "inventory",
+    "symptom": "Inventory reservation p95 latency rises with slow query logs.",
+    "faults": [{"fault_type": "db_slow_query", "intensity": 66}],
+    "expected_keyword": "database slow queries"
+  },
+  {
+    "id": "case-007",
+    "service": "order",
+    "symptom": "Redis cache hit rate drops and order database reads surge.",
+    "faults": [{"fault_type": "cache_stampede", "intensity": 70}],
+    "expected_keyword": "cache stampede"
+  },
+  {
+    "id": "case-008",
+    "service": "payment",
+    "symptom": "Payment service p95 is high and downstream provider calls time out.",
+    "faults": [{"fault_type": "payment_timeout", "intensity": 88}],
+    "expected_keyword": "payment timeout"
+  },
+  {
+    "id": "case-009",
+    "service": "inventory",
+    "symptom": "Database lock contention appears during inventory updates.",
+    "faults": [{"fault_type": "db_slow_query", "intensity": 76}],
+    "expected_keyword": "database slow queries"
+  },
+  {
+    "id": "case-010",
+    "service": "order",
+    "symptom": "Hot key expiry causes a request fan-out to the database.",
+    "faults": [{"fault_type": "cache_stampede", "intensity": 82}],
+    "expected_keyword": "cache stampede"
+  },
+  {
+    "id": "case-011",
+    "service": "order",
+    "symptom": "Checkout requests wait on payment and eventually time out.",
+    "faults": [{"fault_type": "payment_timeout", "intensity": 64}],
+    "expected_keyword": "payment timeout"
+  },
+  {
+    "id": "case-012",
+    "service": "inventory",
+    "symptom": "Reservation throughput drops while database latency rises.",
+    "faults": [{"fault_type": "db_slow_query", "intensity": 83}],
+    "expected_keyword": "database slow queries"
+  },
+  {
+    "id": "case-013",
+    "service": "order",
+    "symptom": "Order detail page has a Redis miss storm.",
+    "faults": [{"fault_type": "cache_stampede", "intensity": 69}],
+    "expected_keyword": "cache stampede"
+  },
+  {
+    "id": "case-014",
+    "service": "payment",
+    "symptom": "Gateway timeout rate rises after a provider incident.",
+    "faults": [{"fault_type": "payment_timeout", "intensity": 95}],
+    "expected_keyword": "payment timeout"
+  },
+  {
+    "id": "case-015",
+    "service": "inventory",
+    "symptom": "Slow SQL and lock waits are visible in inventory logs.",
+    "faults": [{"fault_type": "db_slow_query", "intensity": 72}],
+    "expected_keyword": "database slow queries"
+  },
+  {
+    "id": "case-016",
+    "service": "order",
+    "symptom": "Cache miss storm creates a sudden order latency regression.",
+    "faults": [{"fault_type": "cache_stampede", "intensity": 77}],
+    "expected_keyword": "cache stampede"
+  },
+  {
+    "id": "case-017",
+    "service": "payment",
+    "symptom": "Payment callbacks arrive late after retry exhaustion.",
+    "faults": [{"fault_type": "payment_timeout", "intensity": 74}],
+    "expected_keyword": "payment timeout"
+  },
+  {
+    "id": "case-018",
+    "service": "inventory",
+    "symptom": "Stock locks cause checkout reservation failures.",
+    "faults": [{"fault_type": "db_slow_query", "intensity": 81}],
+    "expected_keyword": "database slow queries"
+  },
+  {
+    "id": "case-019",
+    "service": "order",
+    "symptom": "Users report checkout errors and Redis cache hit rate is low.",
+    "faults": [{"fault_type": "cache_stampede", "intensity": 79}],
+    "expected_keyword": "cache stampede"
+  },
+  {
+    "id": "case-020",
+    "service": "order",
+    "symptom": "Payment dependency timeout causes order creation failures.",
+    "faults": [{"fault_type": "payment_timeout", "intensity": 87}],
+    "expected_keyword": "payment timeout"
+  }
+]
+

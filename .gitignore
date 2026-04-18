@@ -1,0 +1,12 @@
+.env
+node_modules/
+dist/
+coverage/
+.pytest_cache/
+__pycache__/
+*.pyc
+*.log
+.DS_Store
+postgres-data/
+grafana-data/
+
