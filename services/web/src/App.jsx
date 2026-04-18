@@ -24,6 +24,7 @@ const faultPresets = {
 export default function App() {
   const [incident, setIncident] = useState(null);
   const [incidents, setIncidents] = useState([]);
+  const [runbooks, setRunbooks] = useState([]);
   const [events, setEvents] = useState([]);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -50,6 +51,7 @@ export default function App() {
 
   useEffect(() => {
     loadIncidentList();
+    loadRunbooks();
   }, []);
 
   useEffect(() => {
@@ -84,6 +86,14 @@ export default function App() {
     if (response.ok) {
       const body = await response.json();
       setIncidents(body.items || []);
+    }
+  }
+
+  async function loadRunbooks() {
+    const response = await fetch(`${API_BASE}/api/knowledge/documents?limit=8`);
+    if (response.ok) {
+      const body = await response.json();
+      setRunbooks(body.items || []);
     }
   }
 
@@ -154,6 +164,7 @@ export default function App() {
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || "Failed to upload runbook");
       setMessage(`已索引 ${body.chunks} 个文档块`);
+      loadRunbooks();
     } catch (error) {
       setMessage(error.message);
     } finally {
@@ -316,7 +327,12 @@ export default function App() {
           </form>
 
           <form onSubmit={uploadRunbook} className="form-block">
-            <h2>知识库</h2>
+            <div className="section-heading">
+              <h2>知识库</h2>
+              <button className="ghost-button" type="button" onClick={loadRunbooks} disabled={busy}>
+                刷新
+              </button>
+            </div>
             <label>
               Title
               <input value={docForm.title} onChange={(event) => setDocForm({ ...docForm, title: event.target.value })} />
@@ -331,6 +347,22 @@ export default function App() {
             </label>
             <button disabled={busy}>Index runbook</button>
           </form>
+
+          <section className="runbook-list form-block">
+            <h2>已索引 Runbook</h2>
+            {runbooks.length === 0 ? (
+              <p className="empty">暂无 Runbook，上传后会显示在这里。</p>
+            ) : (
+              runbooks.map((item) => (
+                <article className="runbook-row" key={item.id}>
+                  <span className="runbook-title">{item.title}</span>
+                  <span className="runbook-meta">
+                    {item.source} · {item.chunk_count} chunks · {formatTime(item.created_at)}
+                  </span>
+                </article>
+              ))
+            )}
+          </section>
           {message && <p className="message">{message}</p>}
         </aside>
 

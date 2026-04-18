@@ -70,6 +70,19 @@ type IncidentListResponse struct {
 	Limit int        `json:"limit"`
 }
 
+type KnowledgeDocumentSummary struct {
+	ID         string    `json:"id"`
+	Title      string    `json:"title"`
+	Source     string    `json:"source"`
+	ChunkCount int       `json:"chunk_count"`
+	CreatedAt  time.Time `json:"created_at"`
+}
+
+type KnowledgeDocumentListResponse struct {
+	Items []KnowledgeDocumentSummary `json:"items"`
+	Limit int                        `json:"limit"`
+}
+
 type CreateIncidentRequest struct {
 	Service  string `json:"service"`
 	Symptom  string `json:"symptom"`

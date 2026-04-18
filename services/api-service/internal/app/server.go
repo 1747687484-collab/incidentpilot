@@ -457,6 +457,10 @@ func (s *Server) handleApproveAction(w http.ResponseWriter, r *http.Request, inc
 }
 
 func (s *Server) handleKnowledgeDocuments(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		s.handleKnowledgeDocumentList(w, r)
+		return
+	}
 	if r.Method != http.MethodPost {
 		writeError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return
@@ -515,6 +519,40 @@ func (s *Server) handleKnowledgeDocuments(w http.ResponseWriter, r *http.Request
 		"chunks":  len(chunks),
 		"message": "document indexed",
 	})
+}
+
+func (s *Server) handleKnowledgeDocumentList(w http.ResponseWriter, r *http.Request) {
+	limit, err := parseKnowledgeDocumentListLimit(r.URL.Query().Get("limit"))
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	rows, err := s.db.Query(r.Context(), `
+		SELECT kd.id::text, kd.title, kd.source, count(kc.id)::int AS chunk_count, kd.created_at
+		FROM knowledge_documents kd
+		LEFT JOIN knowledge_chunks kc ON kc.document_id = kd.id
+		GROUP BY kd.id, kd.title, kd.source, kd.created_at
+		ORDER BY kd.created_at DESC
+		LIMIT $1
+	`, limit)
+	if err != nil {
+		slog.Error("list knowledge documents failed", "error", err)
+		writeError(w, http.StatusInternalServerError, "failed to list knowledge documents")
+		return
+	}
+	defer rows.Close()
+
+	items := make([]KnowledgeDocumentSummary, 0, limit)
+	for rows.Next() {
+		var item KnowledgeDocumentSummary
+		if err := rows.Scan(&item.ID, &item.Title, &item.Source, &item.ChunkCount, &item.CreatedAt); err != nil {
+			writeError(w, http.StatusInternalServerError, "failed to read knowledge documents")
+			return
+		}
+		items = append(items, item)
+	}
+	writeJSON(w, http.StatusOK, KnowledgeDocumentListResponse{Items: items, Limit: limit})
 }
 
 func (s *Server) handleFaults(w http.ResponseWriter, r *http.Request) {
@@ -733,6 +771,20 @@ func validIncidentStatus(status string) bool {
 }
 
 func parseIncidentListLimit(raw string) (int, error) {
+	if strings.TrimSpace(raw) == "" {
+		return 20, nil
+	}
+	limit, err := strconv.Atoi(raw)
+	if err != nil {
+		return 0, fmt.Errorf("limit must be a number")
+	}
+	if limit < 1 || limit > 100 {
+		return 0, fmt.Errorf("limit must be 1..100")
+	}
+	return limit, nil
+}
+
+func parseKnowledgeDocumentListLimit(raw string) (int, error) {
 	if strings.TrimSpace(raw) == "" {
 		return 20, nil
 	}

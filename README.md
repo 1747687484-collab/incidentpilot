@@ -41,6 +41,7 @@ flowchart LR
 4. MCP-style tools 查询日志、指标、拓扑、Runbook，生成修复建议。
 5. `GET /api/incidents/{id}/events` 通过 SSE 向前端推送实时进度。
 6. `POST /api/incidents/{id}/approve-action` 审批修复动作，worker 才会执行写操作。
+7. `GET /api/knowledge/documents` 查询已索引 Runbook，便于团队维护知识库。
 
 ## 快速启动
 
@@ -87,6 +88,7 @@ docs                      需求、架构、演示、评测、路线图、简历
 - `GET /api/incidents/{id}/events`：订阅 SSE 实时事件。
 - `POST /api/incidents/{id}/approve-action`：审批待执行的修复动作。
 - `POST /api/knowledge/documents`：上传 Runbook 文档。
+- `GET /api/knowledge/documents`：查询已索引 Runbook 文档列表。
 - `POST /api/simulations/faults`：注入模拟故障。
 - `GET /api/healthz`：健康检查。
 - `GET /metrics`：Prometheus 指标。
@@ -163,6 +165,7 @@ python tests/agent_eval/run_eval.py
 - API 健康检查。
 - Web 看板访问。
 - 最近事故列表和历史事故切换。
+- Runbook 文档列表和上传后刷新。
 - Prometheus 健康检查。
 - 端到端链路：注入故障 -> 创建事故 -> Agent RCA -> 审批动作 -> resolved。
 - Go 单元测试。

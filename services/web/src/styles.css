@@ -178,6 +178,11 @@ h2 {
   overflow: auto;
 }
 
+.runbook-list {
+  max-height: 320px;
+  overflow: auto;
+}
+
 .incident-row {
   background: #ffffff;
   border: 1px solid #dce5e0;
@@ -219,6 +224,26 @@ h2 {
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+}
+
+.runbook-row {
+  border: 1px solid #dce5e0;
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+}
+
+.runbook-title {
+  color: #16201d;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.runbook-meta {
+  color: #60716a;
+  font-size: 0.78rem;
+  font-weight: 700;
 }
 
 label {
