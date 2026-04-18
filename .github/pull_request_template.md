@@ -1,28 +1,28 @@
-## Summary
+## 变更摘要
 
 - 
 
-## Why
+## 背景和原因
 
 - 
 
-## Changes
+## 具体改动
 
 - 
 
-## Testing
+## 测试情况
 
 - [ ] `docker compose config --quiet`
 - [ ] Go tests
 - [ ] Python tests
 - [ ] Web build
-- [ ] Manual end-to-end incident flow
+- [ ] 手动端到端事故流程
 
-## Screenshots or Logs
+## 截图、日志或 API 响应
 
-Paste screenshots, API responses, or logs here if relevant.
+如涉及 UI、接口或排障流程，请贴截图、请求响应或关键日志。
 
-## Follow-up
+## 后续工作
 
 - 
 

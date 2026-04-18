@@ -1,55 +1,55 @@
-# Roadmap
+# 开发路线图
 
-## MVP Completed
+## 已完成 MVP
 
-- Docker Compose stack.
-- PostgreSQL + pgvector schema.
-- Go API service.
-- Python Agent worker.
-- React dashboard.
-- Synthetic fault injection.
-- Runbook retrieval.
-- Evidence-grounded RCA report.
-- Human-approved remediation.
-- Prometheus and Grafana provisioning.
-- Unit tests and evaluation set.
+- Docker Compose 全栈。
+- PostgreSQL + pgvector schema。
+- Go API service。
+- Python Agent worker。
+- React 看板。
+- 模拟故障注入。
+- Runbook 检索。
+- 证据驱动 RCA 报告。
+- 人工审批修复动作。
+- Prometheus 和 Grafana 配置。
+- 单元测试和合成评测集。
 
-## Phase 1: Team Hardening
+## Phase 1：团队协作和工程加固
 
-- Add CI workflow for Go, Python, and web checks.
-- Add API integration tests against Docker Compose.
-- Add seed data reset script.
-- Add environment variable reference.
-- Add API examples with PowerShell and curl.
+- 增加 CI workflow，覆盖 Go、Python、Web 和 Compose 配置。
+- 增加 API 集成测试。
+- 增加 seed data reset 脚本。
+- 补充环境变量说明。
+- 补充 PowerShell 和 curl API 示例。
 
-## Phase 2: Agent Capability
+## Phase 2：Agent 能力增强
 
-- Add optional OpenAI-compatible model provider interface.
-- Add prompt templates for RCA and verifier stages.
-- Add hallucination checks that require evidence IDs.
-- Add richer evaluation cases and scoring report.
-- Add model latency and token metrics.
+- 增加 OpenAI-compatible model provider interface。
+- 增加 RCA 和 verifier prompt templates。
+- 增加 evidence ID 强制校验，减少幻觉。
+- 增加更完整的评测集和评分报告。
+- 增加模型耗时、token 和错误率指标。
 
-## Phase 3: Backend Reliability
+## Phase 3：后端可靠性
 
-- Add JetStream dead-letter queue.
-- Add retry policy configuration.
-- Add rate limiting middleware.
-- Add structured request logs.
-- Add OpenTelemetry tracing across API, queue, worker, and tools.
+- 增加 JetStream dead-letter queue。
+- 增加可配置重试策略。
+- 增加 rate limiting middleware。
+- 增加结构化请求日志。
+- 增加 API、queue、worker、tools 的 OpenTelemetry trace。
 
-## Phase 4: Product Polish
+## Phase 4：产品体验
 
-- Add incident list and filters.
-- Add runbook management page.
-- Add action risk review details.
-- Add dashboard charts for SLI changes.
-- Add demo video and screenshots.
+- 增加事故列表和筛选。
+- 增加 Runbook 管理页面。
+- 增加动作风险详情。
+- 增加 SLI 变化图表。
+- 增加演示视频和截图。
 
-## Phase 5: Deployment
+## Phase 5：部署能力
 
-- Add Kubernetes manifests.
-- Add Helm chart.
-- Add cloud deployment guide.
-- Add production security checklist.
+- 增加 Kubernetes manifests。
+- 增加 Helm chart。
+- 增加云部署指南。
+- 增加生产安全检查清单。
 

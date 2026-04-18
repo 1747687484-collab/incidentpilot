@@ -1,26 +1,26 @@
 ---
-name: Feature request
-about: Propose a new capability for IncidentPilot
+name: 功能需求
+about: 提出 IncidentPilot 的新功能或能力增强
 title: "feat: "
 labels: enhancement
 assignees: ""
 ---
 
-## Problem
+## 问题背景
 
-What user or developer problem does this solve?
+这个需求要解决什么用户问题或工程问题？
 
-## Proposal
+## 方案描述
 
-What should change?
+希望新增或修改什么？
 
-## Acceptance Criteria
+## 验收标准
 
 - [ ] 
 - [ ] 
 - [ ] 
 
-## Owner Area
+## 所属模块
 
 - [ ] API
 - [ ] Agent worker

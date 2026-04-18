@@ -1,68 +1,70 @@
-# Product Requirements
+# 项目需求文档
 
-## Background
+## 背景
 
-IncidentPilot is designed as a portfolio-grade team project for backend engineering and Agent application interviews. The product simulates common production incidents, gathers evidence through tools, produces a traceable root cause report, and executes remediation only after human approval.
+IncidentPilot 是一个用于展示后端工程能力和 Agent 应用能力的团队项目。项目模拟线上微服务故障，通过工具收集证据，生成可追溯的根因分析报告，并在人工审批后执行安全修复动作。
 
-## Goals
+项目目标不是做一个简单聊天机器人，而是做一个能讲清楚系统设计、任务编排、状态恢复、证据链和安全边界的工程项目。
 
-- Provide a runnable local AIOps incident response platform.
-- Demonstrate distributed backend skills: API design, queueing, idempotency, persistence, observability, and container orchestration.
-- Demonstrate Agent application skills: tool use, evidence collection, runbook retrieval, multi-step reasoning, verification, and guarded execution.
-- Support team collaboration with clear module ownership, issue templates, tests, and documentation.
+## 项目目标
 
-## Non-Goals
+- 提供一个本地可运行的 AIOps 智能排障平台。
+- 展示后端能力：API 设计、队列、幂等、持久化、可观测性、容器编排。
+- 展示 Agent 能力：工具调用、证据收集、Runbook 检索、多阶段推理、结果校验、安全执行。
+- 支持多人协作：模块清晰、接口稳定、文档完整、模板和 CI 齐全。
 
-- Do not connect to real company logs, metrics, or production systems.
-- Do not execute destructive remediation.
-- Do not require a paid LLM API key for the default demo.
-- Do not model every AIOps edge case in the first MVP.
+## 非目标
 
-## Personas
+- 不接入真实公司日志、指标或生产系统。
+- 不执行真实破坏性修复动作。
+- 默认版本不依赖付费 LLM API。
+- MVP 阶段不覆盖所有 AIOps 场景。
 
-- Backend intern candidate: wants to show production-style service design and reliability thinking.
-- Agent application intern candidate: wants to show tool-calling workflow and evidence-grounded RCA.
-- Reviewer/interviewer: wants to run the project quickly and understand the engineering tradeoffs.
-- Teammate contributor: wants clear tasks, interfaces, and acceptance criteria.
+## 目标用户
 
-## Core User Stories
+- 后端实习候选人：希望展示服务设计、分布式任务、可靠性和工程落地能力。
+- Agent 应用实习候选人：希望展示工具调用、多 Agent 工作流和证据驱动 RCA。
+- 面试官/评审者：希望快速运行项目，并理解架构取舍。
+- 协作队友：希望有明确任务、接口和验收标准。
 
-- As an operator, I can inject a synthetic fault for `order`, `payment`, or `inventory`.
-- As an operator, I can create an incident with service, symptom, and severity.
-- As an operator, I can watch the Agent workflow through live SSE events.
-- As an operator, I can inspect evidence gathered from logs, metrics, topology, and runbooks.
-- As an operator, I can review a root cause report with confidence and limitations.
-- As an operator, I can approve a recommended action and see the incident become resolved.
-- As a contributor, I can run tests and understand which subsystem I own.
+## 核心用户故事
 
-## Functional Requirements
+- 作为运维人员，我可以为 `order`、`payment`、`inventory` 注入模拟故障。
+- 作为运维人员，我可以创建事故并填写服务、症状和等级。
+- 作为运维人员，我可以通过实时事件观察 Agent 执行过程。
+- 作为运维人员，我可以查看日志、指标、拓扑、Runbook 等证据。
+- 作为运维人员，我可以看到带置信度和局限性的根因报告。
+- 作为运维人员，我可以审批修复动作，并看到事故变为已解决。
+- 作为协作者，我可以根据模块职责独立开发和测试。
 
-- Incident API supports create, read, and SSE event streaming.
-- Knowledge API supports uploading Markdown-style runbook documents.
-- Simulation API supports fault injection for cache stampede, payment timeout, and database slow query.
-- Agent worker consumes incident messages from NATS JetStream.
-- Agent workflow writes evidence, steps, action proposals, reports, and audit records.
-- Remediation actions require approval and are idempotent.
-- Dashboard supports fault injection, incident creation, evidence view, timeline view, report view, and approval.
-- Metrics are exposed for API requests and Agent tool calls.
+## 功能需求
 
-## Non-Functional Requirements
+- Incident API 支持创建、查询和 SSE 事件流。
+- Knowledge API 支持上传 Markdown 风格 Runbook。
+- Simulation API 支持注入缓存击穿、支付超时、数据库慢查询等故障。
+- Agent worker 从 NATS JetStream 消费事故任务。
+- Agent 工作流写入证据、步骤、报告、动作和工具审计。
+- 修复动作默认需要人工审批，且审批和执行必须幂等。
+- 前端支持故障注入、事故创建、时间线、证据链、报告和审批。
+- API 和 Agent 工具调用暴露 Prometheus 指标。
 
-- The project must start with one Docker Compose command.
-- The public API must be stable enough for frontend and worker teams to develop independently.
-- Tool calls must have timeout, input validation, and audit records.
-- The default demo must run without external SaaS dependencies.
-- Sensitive configuration must not be passed into Agent prompts or logs.
-- Documentation must explain architecture, ownership, and test expectations.
+## 非功能需求
 
-## Acceptance Criteria
+- 一条 `docker compose up --build` 可以启动完整环境。
+- API 契约稳定，方便前端和 worker 并行开发。
+- 工具调用必须具备超时、参数校验和审计记录。
+- 默认演示不依赖任何外部 SaaS。
+- 敏感配置不能进入 Agent prompt 或日志。
+- 文档必须说明架构、分工、测试和验收标准。
 
-- `docker compose up --build` starts the stack.
-- `GET /api/healthz` returns `ok`.
-- A cache stampede incident produces at least four evidence records.
-- A completed RCA report cites evidence IDs.
-- A proposed action starts as `pending_approval`.
-- Approval changes the action to `executed` and the incident to `resolved`.
-- Repeating the same approval does not execute the action again.
-- Go and Python unit tests pass.
+## 验收标准
+
+- `docker compose up --build` 可以启动全栈。
+- `GET /api/healthz` 返回 `ok`。
+- 缓存击穿事故至少生成 4 条证据。
+- RCA 报告必须引用 evidence IDs。
+- 推荐动作初始状态为 `pending_approval`。
+- 审批后动作变为 `executed`，事故变为 `resolved`。
+- 重复审批不会重复执行动作。
+- Go 和 Python 单元测试通过。
 

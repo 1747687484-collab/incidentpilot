@@ -1,31 +1,31 @@
 ---
-name: Team task
-about: Track implementation work for a contributor
+name: 团队任务
+about: 为协作者拆分具体开发任务
 title: "task: "
 labels: task
 assignees: ""
 ---
 
-## Task
+## 任务目标
 
-What needs to be done?
+需要完成什么？
 
-## Scope
+## 范围
 
-In scope:
-
-- 
-
-Out of scope:
+包含：
 
 - 
 
-## Acceptance Criteria
+不包含：
+
+- 
+
+## 验收标准
 
 - [ ] 
 - [ ] 
 
-## Suggested Files
+## 建议修改文件
 
 - 
 

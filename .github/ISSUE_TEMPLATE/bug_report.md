@@ -1,32 +1,32 @@
 ---
-name: Bug report
-about: Report a reproducible issue
+name: Bug 反馈
+about: 反馈可复现的问题
 title: "fix: "
 labels: bug
 assignees: ""
 ---
 
-## What happened?
+## 问题描述
 
-Describe the bug.
+发生了什么？
 
-## Reproduction
+## 复现步骤
 
 1. 
 2. 
 3. 
 
-## Expected behavior
+## 期望行为
 
-What should have happened?
+原本应该发生什么？
 
-## Logs or screenshots
+## 日志或截图
 
-Paste relevant logs, screenshots, or API responses.
+请贴相关日志、截图或 API 响应。
 
-## Environment
+## 环境信息
 
-- OS:
-- Docker Desktop:
-- Browser:
+- OS：
+- Docker Desktop：
+- Browser：
 

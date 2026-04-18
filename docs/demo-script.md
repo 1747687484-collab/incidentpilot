@@ -1,22 +1,55 @@
-# Demo Script
+# 演示脚本
 
-## 2-3 minute walkthrough
+## 2-3 分钟演示流程
 
-1. Start the stack with `docker compose up --build`.
-2. Open `http://localhost:5173`.
-3. Inject `order / cache_stampede` with intensity `82`.
-4. Create an incident with the default checkout latency symptom.
-5. Explain that the Go API writes the incident, emits `incident.created` to NATS JetStream, and streams SSE events to the UI.
-6. Watch `triage_agent`, `evidence_agent`, `rca_agent`, `verifier_agent`, and `action_agent` appear.
-7. Open the evidence chain and point out logs, metrics, topology, and Runbook retrieval.
-8. Approve the proposed action.
-9. Show the status moving to `resolved`.
-10. Open Grafana or Prometheus and mention API/Agent metrics.
+1. 启动项目：
 
-## Interview talking points
+   ```bash
+   docker compose up --build
+   ```
 
-- The core backend challenge is not the UI; it is durable task orchestration, idempotent writes, state recovery, and evidence traceability.
-- Every tool call is audited with latency and status.
-- Write actions are separated from reasoning and require explicit approval.
-- The project can be extended with real OpenTelemetry traces, real log backends, and OpenAI-compatible model calls.
+2. 打开 Web 看板：
+
+   ```text
+   http://localhost:5173
+   ```
+
+3. 注入 `order / cache_stampede` 故障，强度设为 `82`。
+
+4. 创建一条 `order` 事故，使用默认 checkout latency 症状。
+
+5. 说明链路：
+
+   - Go API 写入事故。
+   - API 发布 `incident.created` 到 NATS JetStream。
+   - Python worker 消费任务。
+   - 前端通过 SSE 实时看到 Agent 步骤。
+
+6. 观察 Agent 时间线：
+
+   - `triage_agent` 判断事故类型。
+   - `evidence_agent` 查询日志、指标、拓扑和 Runbook。
+   - `rca_agent` 输出根因。
+   - `verifier_agent` 校验证据覆盖。
+   - `action_agent` 生成待审批修复动作。
+
+7. 展示证据链：
+
+   - 日志中出现 cache miss storm。
+   - 指标中 p95、error rate 升高，cache hit rate 下降。
+   - 拓扑显示 `order` 依赖 Redis。
+   - Runbook 命中 cache stampede 文档。
+
+8. 点击审批动作，说明写操作不会由 Agent 直接执行，必须人工确认。
+
+9. 观察事故状态变为 `resolved`。
+
+10. 打开 Prometheus 或 Grafana，说明 API 和 Agent 工具调用指标。
+
+## 面试讲解重点
+
+- 这个项目不是聊天机器人，而是一个有队列、状态、审批、审计和可观测性的工程系统。
+- Agent 不是直接“猜答案”，而是通过工具收集证据，再输出带引用的 RCA。
+- 写操作和推理分离，所有修复动作默认需要审批。
+- 当前默认不依赖 LLM，方便本地稳定演示；后续可以接入 OpenAI-compatible 模型。
 

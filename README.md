@@ -1,22 +1,24 @@
-# IncidentPilot
+# IncidentPilot：多 Agent AIOps 智能排障平台
 
-IncidentPilot is a multi-agent AIOps incident response platform built for backend engineering and Agent application practice. It simulates faults across `order`, `payment`, and `inventory` services, then uses a Python agent worker to gather logs, metrics, topology, and runbook evidence before producing a root cause report. Any write-side remediation must be approved by a human before execution.
+IncidentPilot 是一个面向 **后端开发实习** 和 **Agent 应用开发实习** 的多人协作项目。项目模拟 `order`、`payment`、`inventory` 三个微服务出现故障后，由 Agent worker 自动收集日志、指标、服务拓扑和 Runbook 证据，生成可追溯的根因分析报告，并在人工审批后执行安全修复动作。
 
-This repository is organized as a team project. It includes product requirements, architecture notes, collaboration rules, issue templates, tests, and an end-to-end Docker Compose environment.
+这个仓库不是单纯 demo，而是按团队项目组织：包含需求文档、架构说明、协作规范、Issue/PR 模板、CI、测试资产和一键启动的 Docker Compose 环境。
 
-## Highlights
+> English summary: IncidentPilot is a multi-agent AIOps incident response platform with Go, Python, PostgreSQL/pgvector, Redis, NATS JetStream, React, Prometheus, Grafana, and Docker Compose.
 
-- Multi-agent RCA workflow: triage, evidence collection, root cause analysis, verification, and action proposal.
-- Backend engineering stack: Go API service, PostgreSQL + pgvector, Redis, NATS JetStream, SSE, Docker Compose.
-- Agent tooling stack: Python worker, MCP-style tool facade, runbook retrieval, tool audit, guarded execution.
-- Observability stack: Prometheus, Grafana, Jaeger placeholder, service metrics, tool-call metrics.
-- Team-ready docs: requirements, architecture, API contracts, contribution workflow, issue and PR templates.
+## 项目亮点
 
-## Architecture
+- **多 Agent 排障流程**：`triage_agent`、`evidence_agent`、`rca_agent`、`verifier_agent`、`action_agent` 分工协作。
+- **后端工程能力**：Go API、PostgreSQL/pgvector、Redis、NATS JetStream、SSE、幂等审批、Docker Compose。
+- **Agent 工程能力**：MCP-style tools、Runbook 检索、工具调用审计、证据链、人工审批保护。
+- **可观测性**：Prometheus、Grafana、Jaeger、API 指标、Agent 工具调用指标。
+- **多人协作友好**：需求、架构、路线图、贡献指南、Issue 模板、PR 模板、GitHub Actions CI。
+
+## 系统架构
 
 ```mermaid
 flowchart LR
-  UI["React dashboard"] --> API["Go api-service"]
+  UI["React Dashboard"] --> API["Go api-service"]
   API --> PG["PostgreSQL + pgvector"]
   API --> Redis["Redis"]
   API --> NATS["NATS JetStream"]
@@ -31,80 +33,80 @@ flowchart LR
   Worker --> Jaeger
 ```
 
-Core flow:
+核心链路：
 
-1. `POST /api/simulations/faults` injects a synthetic fault.
-2. `POST /api/incidents` creates an incident and publishes `incident.created` to NATS JetStream.
-3. `agent-worker` runs `triage_agent`, `evidence_agent`, `rca_agent`, `verifier_agent`, and `action_agent`.
-4. MCP-style tools gather logs, metrics, topology, runbooks, action proposals, and approved executions.
-5. `GET /api/incidents/{id}/events` streams live SSE updates to the dashboard.
-6. `POST /api/incidents/{id}/approve-action` approves guarded write actions.
+1. `POST /api/simulations/faults` 注入模拟故障。
+2. `POST /api/incidents` 创建事故，并向 NATS JetStream 发布 `incident.created`。
+3. `agent-worker` 消费任务，执行多 Agent RCA 工作流。
+4. MCP-style tools 查询日志、指标、拓扑、Runbook，生成修复建议。
+5. `GET /api/incidents/{id}/events` 通过 SSE 向前端推送实时进度。
+6. `POST /api/incidents/{id}/approve-action` 审批修复动作，worker 才会执行写操作。
 
-## Quick Start
+## 快速启动
 
 ```bash
 docker compose up --build
 ```
 
-Open:
+启动后访问：
 
-- Web dashboard: http://localhost:5173
-- API: http://localhost:8080
-- Prometheus: http://localhost:9090
-- Grafana: http://localhost:3000, default login `admin / admin`
-- Jaeger: http://localhost:16686
+- Web 看板：http://localhost:5173
+- API：http://localhost:8080
+- Prometheus：http://localhost:9090
+- Grafana：http://localhost:3000，默认账号密码 `admin / admin`
+- Jaeger：http://localhost:16686
 
-Recommended demo:
+推荐演示路径：
 
-1. Open the dashboard.
-2. Inject `order / cache_stampede` with intensity `82`.
-3. Create an `order` incident.
-4. Wait for timeline, evidence, root cause, and approval action.
-5. Approve the proposed remediation.
-6. Confirm the incident moves to `resolved`.
+1. 打开 Web 看板。
+2. 注入 `order / cache_stampede`，强度设置为 `82`。
+3. 创建一条 `order` 事故。
+4. 等待 Agent timeline、Evidence chain、Root cause 自动生成。
+5. 点击审批按钮执行修复动作。
+6. 观察事故状态变为 `resolved`。
 
-## Project Layout
+## 目录结构
 
 ```text
-services/api-service      Go REST API, SSE, NATS publisher, idempotency, metrics
-services/agent-worker     Python agent workflow and MCP-style tools
-services/web              React + Vite incident dashboard
-db/init                   PostgreSQL schema, pgvector setup, seeded runbooks
-configs                   Prometheus and Grafana provisioning
-tests/k6                  API load test
-tests/agent_eval          Synthetic agent evaluation set
-docs                      Requirements, architecture, demo, evaluation, resume notes
-.github                   Issue templates and pull request template
+services/api-service      Go REST API、SSE、NATS 发布、幂等、指标
+services/agent-worker     Python Agent 工作流和 MCP-style tools
+services/web              React + Vite 事故看板
+db/init                   PostgreSQL schema、pgvector、种子 Runbook
+configs                   Prometheus 和 Grafana 配置
+tests/k6                  API 压测脚本
+tests/agent_eval          Agent 合成评测集
+docs                      需求、架构、演示、评测、路线图、简历材料
+.github                   Issue 模板、PR 模板、CI workflow
 ```
 
-## Public APIs
+## 对外 API
 
-- `POST /api/incidents`: create an incident diagnosis task.
-- `GET /api/incidents/{id}`: read incident detail, evidence, steps, actions, and report.
-- `GET /api/incidents/{id}/events`: stream live SSE events.
-- `POST /api/incidents/{id}/approve-action`: approve a pending remediation action.
-- `POST /api/knowledge/documents`: upload a runbook document.
-- `POST /api/simulations/faults`: inject a synthetic service fault.
-- `GET /api/healthz`: service health.
-- `GET /metrics`: Prometheus metrics.
+- `POST /api/incidents`：创建事故诊断任务。
+- `GET /api/incidents/{id}`：查询事故、证据、Agent 步骤、动作和报告。
+- `GET /api/incidents/{id}/events`：订阅 SSE 实时事件。
+- `POST /api/incidents/{id}/approve-action`：审批待执行的修复动作。
+- `POST /api/knowledge/documents`：上传 Runbook 文档。
+- `POST /api/simulations/faults`：注入模拟故障。
+- `GET /api/healthz`：健康检查。
+- `GET /metrics`：Prometheus 指标。
 
-## Team Collaboration
+## 团队协作说明
 
-Before starting work, read:
+开始开发前建议先阅读：
 
-- [Product Requirements](docs/requirements.md)
-- [Architecture](docs/architecture.md)
-- [Collaboration Guide](CONTRIBUTING.md)
-- [Development Roadmap](docs/roadmap.md)
+- [项目需求](docs/requirements.md)
+- [架构说明](docs/architecture.md)
+- [贡献指南](CONTRIBUTING.md)
+- [开发路线图](docs/roadmap.md)
 
-Suggested team ownership:
+推荐分工：
 
-- Backend owner: Go API, idempotency, SSE, queue publishing, metrics.
-- Agent owner: Python worker, MCP-style tools, runbook retrieval, evaluation.
-- Frontend owner: React dashboard, incident timeline, evidence view, approval UX.
-- Infra owner: Docker Compose, PostgreSQL/pgvector, Prometheus, Grafana, CI.
+- 后端负责人：Go API、幂等、SSE、队列发布、指标。
+- Agent 负责人：Python worker、MCP-style tools、Runbook 检索、评测。
+- 前端负责人：React 看板、时间线、证据链、审批交互。
+- 基建负责人：Docker Compose、PostgreSQL/pgvector、Prometheus、Grafana、CI。
 
-Branch naming:
+分支命名：
 
 ```text
 feature/<short-name>
@@ -113,18 +115,18 @@ docs/<short-name>
 test/<short-name>
 ```
 
-Commit style:
+提交格式：
 
 ```text
 feat(api): add incident creation endpoint
 fix(agent): make action approval idempotent
-docs: add architecture overview
+docs: update architecture guide
 test(eval): add cache stampede cases
 ```
 
-## Tests
+## 测试
 
-Local toolchains:
+本地工具链：
 
 ```bash
 cd services/api-service && go test ./...
@@ -132,7 +134,7 @@ cd services/agent-worker && python -m pytest
 cd services/web && npm install && npm run build
 ```
 
-Docker-based checks:
+Docker 方式：
 
 ```bash
 docker run --rm -v ${PWD}/services/api-service:/src -w /src golang:1.23-alpine go test ./...
@@ -140,32 +142,40 @@ docker run --rm -v ${PWD}/services/agent-worker:/app -w /app incidentpilot-agent
 docker compose run --rm web npm run build
 ```
 
-Load test after the stack is running:
+压测：
 
 ```bash
 k6 run tests/k6/create_incidents.js
 ```
 
-Agent evaluation:
+Agent 评测：
 
 ```bash
 python tests/agent_eval/run_eval.py
 ```
 
-## Current Validation
+## 当前验证情况
 
-The current MVP has been validated with:
+当前 MVP 已完成并验证：
 
-- Docker Compose full-stack startup.
-- API health check.
-- Web dashboard HTTP response.
-- Prometheus health check.
-- End-to-end incident flow: inject fault -> create incident -> agent RCA -> approve action -> resolved.
-- Go unit tests.
-- Python unit tests.
-- Agent evaluation set with 20 synthetic cases.
+- Docker Compose 全栈启动。
+- API 健康检查。
+- Web 看板访问。
+- Prometheus 健康检查。
+- 端到端链路：注入故障 -> 创建事故 -> Agent RCA -> 审批动作 -> resolved。
+- Go 单元测试。
+- Python 单元测试。
+- 20 条合成 Agent 评测样例。
 
-## Notes
+## 后续扩展
 
-The current agent workflow is deterministic so the project can run without a paid LLM key. The workflow is structured so an OpenAI-compatible model call can be added later inside the RCA stage without changing the public API or database contracts.
+- 接入 OpenAI-compatible 模型，让 RCA 阶段从确定性规则升级为 LLM 推理。
+- 增加真实日志/指标连接器。
+- 增加 OpenTelemetry trace。
+- 增加权限和角色审批。
+- 增加 Kubernetes/Helm 部署。
+
+## 说明
+
+默认 Agent 工作流是确定性的，因此不需要任何付费 LLM Key 就能运行完整演示。后续可以在 `rca_agent` 阶段接入 OpenAI、DeepSeek、腾讯混元或本地 Ollama，只要保持当前 API 和数据库契约不变即可。
 
