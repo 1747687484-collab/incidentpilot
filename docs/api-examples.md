@@ -48,6 +48,37 @@ powershell -ExecutionPolicy Bypass -File .\scripts\demo-incident.ps1 `
   -PollSeconds 60
 ```
 
+## 重置本地演示数据
+
+反复演示后，事故、证据链、故障状态和工具审计会越积越多。可以使用重置脚本清理运行数据，同时保留 seed Runbook 和手动上传的 Runbook：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\reset-demo-data.ps1 -Force
+```
+
+脚本默认执行 [reset_demo_data.sql](../db/maintenance/reset_demo_data.sql)，会清理：
+
+- `incidents` 以及级联的事件、证据、Agent 步骤、报告、修复动作。
+- `faults` 模拟故障。
+- `tool_audit` 工具调用审计。
+
+不会清理：
+
+- `knowledge_documents`
+- `knowledge_chunks`
+
+如果只想看将执行的 SQL：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\reset-demo-data.ps1 -DryRun
+```
+
+如果还希望清掉 Redis 里的演示缓存和幂等键：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\reset-demo-data.ps1 -Force -FlushRedis
+```
+
 ## PowerShell 手动调用
 
 健康检查：
@@ -175,3 +206,4 @@ curl "http://localhost:8080/api/incidents?limit=6&service=order"
 - 如果 `POST /api/incidents` 返回同一条事故，检查是否复用了同一个 `Idempotency-Key`。
 - 如果事故一直停在 `queued`，检查 `agent-worker` 容器日志。
 - 如果审批后状态没有变化，等待 3 到 5 秒后重新查询事故详情。
+- 如果演示数据太多，运行 `scripts/reset-demo-data.ps1 -Force` 后重新演示。

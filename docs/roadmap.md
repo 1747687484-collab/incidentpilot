@@ -20,7 +20,7 @@
 
 - 增加 CI workflow，覆盖 Go、Python、Web 和 Compose 配置。
 - 增加 API 集成测试。
-- 增加 seed data reset 脚本。
+- 增加 seed data reset 脚本。已完成本地演示数据重置脚本，保留 Runbook。
 - 补充环境变量说明。
 - 补充 PowerShell 和 curl API 示例。已完成基础版，后续可继续扩展更多异常场景。
 

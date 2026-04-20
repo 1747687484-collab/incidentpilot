@@ -74,6 +74,7 @@ services/api-service      Go REST API、SSE、NATS 发布、幂等、指标
 services/agent-worker     Python Agent 工作流和 MCP-style tools
 services/web              React + Vite 事故看板
 db/init                   PostgreSQL schema、pgvector、种子 Runbook
+db/maintenance            本地演示数据维护 SQL
 configs                   Prometheus 和 Grafana 配置
 tests/k6                  API 压测脚本
 tests/agent_eval          Agent 合成评测集
@@ -166,6 +167,12 @@ PowerShell 一键演示：
 powershell -ExecutionPolicy Bypass -File .\scripts\demo-incident.ps1
 ```
 
+重置本地演示数据，保留 Runbook：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\reset-demo-data.ps1 -Force
+```
+
 ## 当前验证情况
 
 当前 MVP 已完成并验证：
@@ -174,6 +181,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\demo-incident.ps1
 - API 健康检查。
 - Web 看板访问。
 - PowerShell API 演示脚本和调试示例。
+- 本地演示数据重置脚本。
 - 最近事故筛选、列表和历史事故切换。
 - Runbook 文档列表和上传后刷新。
 - Prometheus 健康检查。

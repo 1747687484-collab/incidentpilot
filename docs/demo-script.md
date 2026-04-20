@@ -2,6 +2,12 @@
 
 ## 2-3 分钟演示流程
 
+0. 如果之前已经跑过多次演示，可以先重置运行数据，保留 Runbook：
+
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File .\scripts\reset-demo-data.ps1 -Force
+   ```
+
 1. 启动项目：
 
    ```bash
