@@ -178,6 +178,19 @@ h2 {
   overflow: auto;
 }
 
+.incident-filters {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.filter-actions {
+  display: grid;
+  gap: 8px;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .runbook-list {
   max-height: 320px;
   overflow: auto;
@@ -391,6 +404,11 @@ textarea {
 
 @media (max-width: 560px) {
   .action-item {
+    grid-template-columns: 1fr;
+  }
+
+  .incident-filters,
+  .filter-actions {
     grid-template-columns: 1fr;
   }
 

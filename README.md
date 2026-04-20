@@ -62,9 +62,10 @@ docker compose up --build
 1. 打开 Web 看板。
 2. 注入 `order / cache_stampede`，强度设置为 `82`。
 3. 创建一条 `order` 事故。
-4. 等待 Agent timeline、Evidence chain、Root cause 自动生成。
-5. 点击审批按钮执行修复动作。
-6. 观察事故状态变为 `resolved`。
+4. 在最近事故列表按服务或状态筛选，确认当前事故进入排障流程。
+5. 等待 Agent timeline、Evidence chain、Root cause 自动生成。
+6. 点击审批按钮执行修复动作。
+7. 观察事故状态变为 `resolved`。
 
 ## 目录结构
 
@@ -164,7 +165,7 @@ python tests/agent_eval/run_eval.py
 - Docker Compose 全栈启动。
 - API 健康检查。
 - Web 看板访问。
-- 最近事故列表和历史事故切换。
+- 最近事故筛选、列表和历史事故切换。
 - Runbook 文档列表和上传后刷新。
 - Prometheus 健康检查。
 - 端到端链路：注入故障 -> 创建事故 -> Agent RCA -> 审批动作 -> resolved。

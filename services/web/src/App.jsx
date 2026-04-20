@@ -24,6 +24,11 @@ const faultPresets = {
 export default function App() {
   const [incident, setIncident] = useState(null);
   const [incidents, setIncidents] = useState([]);
+  const [incidentFilters, setIncidentFilters] = useState({
+    service: "",
+    status: "",
+    limit: "12",
+  });
   const [runbooks, setRunbooks] = useState([]);
   const [events, setEvents] = useState([]);
   const [busy, setBusy] = useState(false);
@@ -70,7 +75,7 @@ export default function App() {
     source.onerror = () => setMessage("Event stream reconnecting...");
 
     return () => source.close();
-  }, [incident?.incident?.id]);
+  }, [incident?.incident?.id, incidentFilters]);
 
   const healthText = useMemo(() => {
     if (status === "resolved") return "已解决";
@@ -81,8 +86,13 @@ export default function App() {
     return "就绪";
   }, [status]);
 
-  async function loadIncidentList() {
-    const response = await fetch(`${API_BASE}/api/incidents?limit=12`);
+  async function loadIncidentList(filters = incidentFilters) {
+    const params = new URLSearchParams();
+    params.set("limit", filters.limit || "12");
+    if (filters.service) params.set("service", filters.service);
+    if (filters.status) params.set("status", filters.status);
+
+    const response = await fetch(`${API_BASE}/api/incidents?${params.toString()}`);
     if (response.ok) {
       const body = await response.json();
       setIncidents(body.items || []);
@@ -194,6 +204,17 @@ export default function App() {
     }
   }
 
+  function applyIncidentFilters(event) {
+    event.preventDefault();
+    loadIncidentList();
+  }
+
+  function resetIncidentFilters() {
+    const nextFilters = { service: "", status: "", limit: "12" };
+    setIncidentFilters(nextFilters);
+    loadIncidentList(nextFilters);
+  }
+
   function updateIncidentService(service) {
     setIncidentForm((current) => ({ ...current, service }));
     setFaultForm((current) => ({ ...current, service, fault_type: faultPresets[service][0] }));
@@ -238,12 +259,60 @@ export default function App() {
           <section className="incident-list form-block">
             <div className="section-heading">
               <h2>最近事故</h2>
-              <button className="ghost-button" type="button" onClick={loadIncidentList} disabled={busy}>
+              <button className="ghost-button" type="button" onClick={() => loadIncidentList()} disabled={busy}>
                 刷新
               </button>
             </div>
+            <form className="incident-filters" onSubmit={applyIncidentFilters}>
+              <label>
+                Service
+                <select
+                  value={incidentFilters.service}
+                  onChange={(event) => setIncidentFilters({ ...incidentFilters, service: event.target.value })}
+                >
+                  <option value="">全部</option>
+                  <option value="order">order</option>
+                  <option value="payment">payment</option>
+                  <option value="inventory">inventory</option>
+                </select>
+              </label>
+              <label>
+                Status
+                <select
+                  value={incidentFilters.status}
+                  onChange={(event) => setIncidentFilters({ ...incidentFilters, status: event.target.value })}
+                >
+                  <option value="">全部</option>
+                  <option value="queued">排队中</option>
+                  <option value="running">运行中</option>
+                  <option value="awaiting_approval">待审批</option>
+                  <option value="resolved">已解决</option>
+                  <option value="failed">失败</option>
+                </select>
+              </label>
+              <label>
+                Limit
+                <select
+                  value={incidentFilters.limit}
+                  onChange={(event) => setIncidentFilters({ ...incidentFilters, limit: event.target.value })}
+                >
+                  <option value="6">6</option>
+                  <option value="12">12</option>
+                  <option value="24">24</option>
+                  <option value="48">48</option>
+                </select>
+              </label>
+              <div className="filter-actions">
+                <button className="ghost-button" type="submit" disabled={busy}>
+                  应用
+                </button>
+                <button className="ghost-button" type="button" onClick={resetIncidentFilters} disabled={busy}>
+                  重置
+                </button>
+              </div>
+            </form>
             {incidents.length === 0 ? (
-              <p className="empty">暂无事故，先注入故障并创建一条事故。</p>
+              <p className="empty">当前筛选下暂无事故，可以重置筛选或创建一条新事故。</p>
             ) : (
               incidents.map((item) => (
                 <button
