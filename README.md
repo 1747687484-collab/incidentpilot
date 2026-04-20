@@ -77,6 +77,7 @@ db/init                   PostgreSQL schema、pgvector、种子 Runbook
 configs                   Prometheus 和 Grafana 配置
 tests/k6                  API 压测脚本
 tests/agent_eval          Agent 合成评测集
+scripts                   本地演示和调试脚本
 docs                      需求、架构、演示、评测、路线图、简历材料
 .github                   Issue 模板、PR 模板、CI workflow
 ```
@@ -100,6 +101,7 @@ docs                      需求、架构、演示、评测、路线图、简历
 
 - [项目需求](docs/requirements.md)
 - [架构说明](docs/architecture.md)
+- [API 调试示例](docs/api-examples.md)
 - [贡献指南](CONTRIBUTING.md)
 - [开发路线图](docs/roadmap.md)
 
@@ -158,6 +160,12 @@ Agent 评测：
 python tests/agent_eval/run_eval.py
 ```
 
+PowerShell 一键演示：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\demo-incident.ps1
+```
+
 ## 当前验证情况
 
 当前 MVP 已完成并验证：
@@ -165,6 +173,7 @@ python tests/agent_eval/run_eval.py
 - Docker Compose 全栈启动。
 - API 健康检查。
 - Web 看板访问。
+- PowerShell API 演示脚本和调试示例。
 - 最近事故筛选、列表和历史事故切换。
 - Runbook 文档列表和上传后刷新。
 - Prometheus 健康检查。

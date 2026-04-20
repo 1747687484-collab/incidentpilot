@@ -22,7 +22,7 @@
 - 增加 API 集成测试。
 - 增加 seed data reset 脚本。
 - 补充环境变量说明。
-- 补充 PowerShell 和 curl API 示例。
+- 补充 PowerShell 和 curl API 示例。已完成基础版，后续可继续扩展更多异常场景。
 
 ## Phase 2：Agent 能力增强
 
