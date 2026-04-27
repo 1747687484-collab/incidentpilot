@@ -12,16 +12,19 @@ try:
 except ModuleNotFoundError:
     asyncpg = None
 
-from .metrics import WORKFLOW_RUNS
+from .llm import LLMClient
+from .metrics import LLM_CALLS, LLM_LATENCY, WORKFLOW_RUNS
+from .prompts import build_rca_messages
 from .tools import MCPToolService
 
 logger = logging.getLogger(__name__)
 
 
 class AgentWorkflow:
-    def __init__(self, db: asyncpg.Pool, tools: MCPToolService):
+    def __init__(self, db: asyncpg.Pool, tools: MCPToolService, llm_client: LLMClient | None = None):
         self.db = db
         self.tools = tools
+        self.llm_client = llm_client
 
     async def process_incident(self, incident_id: str) -> None:
         started = time.perf_counter()
@@ -114,6 +117,11 @@ class AgentWorkflow:
         return evidence_ids
 
     async def _rca(self, incident: asyncpg.Record, issue_type: str, evidence_ids: list[str]) -> tuple[str, float, list[str]]:
+        if self.llm_client and self.llm_client.enabled:
+            draft = await self._rca_with_llm(incident, issue_type, evidence_ids)
+            if draft:
+                return draft
+
         faults = await self._active_faults(incident["service"])
         root_cause = derive_root_cause(incident["service"], issue_type, [dict(row) for row in faults])
         confidence = 0.86 if len(evidence_ids) >= 3 and faults else 0.68
@@ -128,6 +136,53 @@ class AgentWorkflow:
             0,
         )
         return root_cause, confidence, limitations
+
+    async def _rca_with_llm(
+        self,
+        incident: asyncpg.Record,
+        issue_type: str,
+        evidence_ids: list[str],
+    ) -> tuple[str, float, list[str]] | None:
+        evidence = await self._load_evidence_by_ids(incident["id"], evidence_ids)
+        messages = build_rca_messages(dict(incident), issue_type, evidence)
+        started = time.perf_counter()
+        provider = self.llm_client.provider if self.llm_client else "disabled"
+        try:
+            draft = await self.llm_client.generate_root_cause(messages, set(evidence_ids))  # type: ignore[union-attr]
+        except Exception as exc:
+            logger.warning("llm rca failed; using deterministic fallback", extra={"incident_id": incident["id"], "provider": provider})
+            LLM_CALLS.labels(provider=provider, status="fallback").inc()
+            LLM_LATENCY.labels(provider=provider).observe(time.perf_counter() - started)
+            await self._insert_step(
+                incident["id"],
+                "rca_agent",
+                "llm_root_cause",
+                {"issue_type": issue_type, "evidence_ids": evidence_ids, "provider": provider},
+                f"LLM RCA failed; using deterministic fallback: {type(exc).__name__}",
+                "fallback",
+                int((time.perf_counter() - started) * 1000),
+            )
+            return None
+
+        LLM_CALLS.labels(provider=draft.provider, status="ok").inc()
+        LLM_LATENCY.labels(provider=draft.provider).observe(time.perf_counter() - started)
+        limitations = merge_limitations(
+            draft.limitations,
+            [
+                f"LLM provider: {draft.provider}",
+                "manual approval required for write actions",
+            ],
+        )
+        await self._insert_step(
+            incident["id"],
+            "rca_agent",
+            "llm_root_cause",
+            {"issue_type": issue_type, "evidence_ids": draft.evidence_ids, "provider": draft.provider},
+            draft.root_cause,
+            "completed",
+            int((time.perf_counter() - started) * 1000),
+        )
+        return draft.root_cause, draft.confidence, limitations
 
     async def _verify(self, incident: asyncpg.Record, confidence: float, evidence_ids: list[str]) -> None:
         status = "completed" if confidence >= 0.6 and len(evidence_ids) >= 2 else "needs_review"
@@ -204,6 +259,22 @@ class AgentWorkflow:
                 """,
                 service,
             )
+
+    async def _load_evidence_by_ids(self, incident_id: str, evidence_ids: list[str]) -> list[dict[str, Any]]:
+        if not evidence_ids:
+            return []
+        async with self.db.acquire() as conn:
+            rows = await conn.fetch(
+                """
+                SELECT id::text, source, query, content, score, timestamp
+                FROM evidence
+                WHERE incident_id = $1 AND id = ANY($2::uuid[])
+                ORDER BY timestamp ASC
+                """,
+                incident_id,
+                [UUID(value) for value in evidence_ids],
+            )
+        return [dict(row) for row in rows]
 
     async def _insert_evidence(self, incident_id: str, result: dict[str, Any]) -> str:
         async with self.db.acquire() as conn:
@@ -362,3 +433,16 @@ def summarize(content: str, limit: int = 180) -> str:
     if len(normalized) <= limit:
         return normalized
     return normalized[: limit - 3] + "..."
+
+
+def merge_limitations(*groups: list[str]) -> list[str]:
+    merged: list[str] = []
+    seen: set[str] = set()
+    for group in groups:
+        for item in group:
+            normalized = " ".join(str(item).strip().split())
+            key = normalized.lower()
+            if normalized and key not in seen:
+                seen.add(key)
+                merged.append(normalized)
+    return merged

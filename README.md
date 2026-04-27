@@ -11,6 +11,7 @@ IncidentPilot 是一个面向 **后端开发实习** 和 **Agent 应用开发实
 - **多 Agent 排障流程**：`triage_agent`、`evidence_agent`、`rca_agent`、`verifier_agent`、`action_agent` 分工协作。
 - **后端工程能力**：Go API、PostgreSQL/pgvector、Redis、NATS JetStream、SSE、幂等审批、Docker Compose。
 - **Agent 工程能力**：MCP-style tools、Runbook 检索、工具调用审计、证据链、人工审批保护。
+- **模型接入能力**：可选 OpenAI-compatible Provider、RCA prompt 模板、证据 ID 校验、确定性回退。
 - **可观测性**：Prometheus、Grafana、Jaeger、API 指标、Agent 工具调用指标。
 - **多人协作友好**：需求、架构、路线图、贡献指南、Issue 模板、PR 模板、GitHub Actions CI。
 
@@ -39,9 +40,10 @@ flowchart LR
 2. `POST /api/incidents` 创建事故，并向 NATS JetStream 发布 `incident.created`。
 3. `agent-worker` 消费任务，执行多 Agent RCA 工作流。
 4. MCP-style tools 查询日志、指标、拓扑、Runbook，生成修复建议。
-5. `GET /api/incidents/{id}/events` 通过 SSE 向前端推送实时进度。
-6. `POST /api/incidents/{id}/approve-action` 审批修复动作，worker 才会执行写操作。
-7. `GET /api/knowledge/documents` 查询已索引 Runbook，便于团队维护知识库。
+5. 可选 OpenAI-compatible Provider 生成 RCA 草稿，系统校验证据引用，不合格时回退到确定性 RCA。
+6. `GET /api/incidents/{id}/events` 通过 SSE 向前端推送实时进度。
+7. `POST /api/incidents/{id}/approve-action` 审批修复动作，worker 才会执行写操作。
+8. `GET /api/knowledge/documents` 查询已索引 Runbook，便于团队维护知识库。
 
 ## 快速启动
 
@@ -102,6 +104,7 @@ docs                      需求、架构、演示、评测、路线图、简历
 
 - [项目需求](docs/requirements.md)
 - [架构说明](docs/architecture.md)
+- [模型 Provider 接入说明](docs/model-provider.md)
 - [API 调试示例](docs/api-examples.md)
 - [贡献指南](CONTRIBUTING.md)
 - [开发路线图](docs/roadmap.md)
@@ -180,6 +183,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\reset-demo-data.ps1 -Force
 - Docker Compose 全栈启动。
 - API 健康检查。
 - Web 看板访问。
+- 可选 OpenAI-compatible RCA Provider 和确定性回退。
 - PowerShell API 演示脚本和调试示例。
 - 本地演示数据重置脚本。
 - 最近事故筛选、列表和历史事故切换。
@@ -200,4 +204,4 @@ powershell -ExecutionPolicy Bypass -File .\scripts\reset-demo-data.ps1 -Force
 
 ## 说明
 
-默认 Agent 工作流是确定性的，因此不需要任何付费 LLM Key 就能运行完整演示。后续可以在 `rca_agent` 阶段接入 OpenAI、DeepSeek、腾讯混元或本地 Ollama，只要保持当前 API 和数据库契约不变即可。
+默认 Agent 工作流是确定性的，因此不需要任何付费 LLM Key 就能运行完整演示。需要展示模型推理时，可以按 [模型 Provider 接入说明](docs/model-provider.md) 配置 OpenAI-compatible API；模型失败或输出不合格时会自动回退到确定性 RCA。

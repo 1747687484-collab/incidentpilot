@@ -35,3 +35,15 @@ WORKFLOW_RUNS = Counter(
     "Total Agent workflow runs.",
     ["status"],
 )
+
+LLM_CALLS = Counter(
+    "incidentpilot_agent_llm_calls_total",
+    "Total Agent LLM calls.",
+    ["provider", "status"],
+)
+
+LLM_LATENCY = Histogram(
+    "incidentpilot_agent_llm_duration_seconds",
+    "Agent LLM call duration.",
+    ["provider"],
+)

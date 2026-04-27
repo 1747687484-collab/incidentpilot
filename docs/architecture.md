@@ -12,6 +12,7 @@ flowchart TD
   API --> NATS["NATS JetStream"]
   NATS --> Worker["agent-worker (Python)"]
   Worker --> ToolFacade["MCP-style tool facade"]
+  Worker --> Model["OpenAI-compatible Provider (optional)"]
   ToolFacade --> Postgres
   Worker --> Postgres
   API --> Prometheus
@@ -47,6 +48,7 @@ flowchart TD
 - 消费 `incident.created` 消息。
 - 执行多 Agent RCA 工作流。
 - 调用 MCP-style tools 查询日志、指标、拓扑、Runbook、动作建议和审批执行。
+- 可选调用 OpenAI-compatible Provider 生成 RCA 草稿，并校验证据引用。
 - 写入证据、步骤、报告和动作状态。
 - 消费 `remediation.approved` 消息并执行已审批动作。
 
@@ -56,7 +58,7 @@ flowchart TD
 - asyncpg 访问 PostgreSQL。
 - nats-py 访问 JetStream。
 - prometheus-client 暴露工具调用指标。
-- 默认确定性工作流，后续可接入 LLM。
+- 默认确定性工作流，可选接入 OpenAI-compatible 模型。
 
 ### web
 
@@ -123,10 +125,12 @@ sequenceDiagram
 - 所有写操作必须人工审批。
 - 审批和执行必须幂等。
 - 执行器只修改模拟故障数据，不操作真实系统。
+- 模型 Key 不进入 prompt、数据库或事件流。
+- 模型输出必须引用系统提供的 evidence IDs，不合格时回退到确定性 RCA。
 
 ## 扩展点
 
-- 将确定性 RCA 替换为 OpenAI-compatible 模型调用。
+- 增加更多模型 Provider 和评测维度。
 - 接入真实日志和指标系统。
 - 增加 OpenTelemetry trace。
 - 增加鉴权和基于角色的审批。

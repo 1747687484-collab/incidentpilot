@@ -11,6 +11,8 @@
 - Runbook 文档列表。
 - 模拟故障注入。
 - Runbook 检索。
+- 可选 OpenAI-compatible RCA Provider。
+- RCA prompt 模板和证据引用校验。
 - 证据驱动 RCA 报告。
 - 人工审批修复动作。
 - Prometheus 和 Grafana 配置。
@@ -26,11 +28,11 @@
 
 ## Phase 2：Agent 能力增强
 
-- 增加 OpenAI-compatible model provider interface。
-- 增加 RCA 和 verifier prompt templates。
-- 增加 evidence ID 强制校验，减少幻觉。
+- 增加 OpenAI-compatible model provider interface。已完成 RCA Provider 基础版。
+- 增加 RCA 和 verifier prompt templates。已完成 RCA prompt 模板。
+- 增加 evidence ID 强制校验，减少幻觉。已完成 RCA 输出证据 ID 校验。
 - 增加更完整的评测集和评分报告。
-- 增加模型耗时、token 和错误率指标。
+- 增加模型耗时、token 和错误率指标。已完成模型调用次数和耗时指标，token 指标待 Provider 返回 usage 后补充。
 
 ## Phase 3：后端可靠性
 

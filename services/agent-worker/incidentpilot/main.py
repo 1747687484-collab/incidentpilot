@@ -9,6 +9,7 @@ from nats.errors import TimeoutError as NATSTimeoutError
 from prometheus_client import start_http_server
 
 from .config import load_settings
+from .llm import build_llm_client
 from .tools import MCPToolService
 from .workflow import AgentWorkflow
 
@@ -72,7 +73,13 @@ async def main() -> None:
     incident_sub = await js.pull_subscribe("incident.created", durable="agent-worker", stream="INCIDENTS")
     action_sub = await js.pull_subscribe("remediation.approved", durable="action-worker", stream="INCIDENTS")
 
-    workflow = AgentWorkflow(db, MCPToolService(db))
+    llm_client = build_llm_client(settings)
+    if llm_client and llm_client.enabled:
+        logger.info("agent LLM provider enabled: %s", llm_client.provider)
+    else:
+        logger.info("agent LLM provider disabled; deterministic RCA fallback is active")
+
+    workflow = AgentWorkflow(db, MCPToolService(db), llm_client=llm_client)
     stop_event = asyncio.Event()
     loop = asyncio.get_running_loop()
     for sig in (signal.SIGINT, signal.SIGTERM):
